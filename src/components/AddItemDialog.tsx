@@ -91,7 +91,7 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
       const currentUser = session?.user ?? null;
       if (!currentUser) {
         // Require sign-in to add persistent items
-        toast.error("Please sign in to add items");
+        toast.info("Sign in to add items to your wishlist");
         navigate("/auth");
         return;
       }

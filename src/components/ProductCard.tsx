@@ -25,12 +25,12 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   return (
     <Link to={`/item/${id}`} className="block">
-      <div className="group w-full    relative bg-card rounded-3xl overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer">
+      <div className="group w-full h-[420px]    relative bg-card rounded-3xl overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer">
         <div className="relative flex p-4 justify-center  bg-white overflow-hidden">
           <img
             src={image}
             alt={title}
-            className="  h-64 rounded-3xl object-cover bg transition-transform duration-300 group-hover:scale-105"
+            className="  max-h-64 rounded-3xl object-cover bg transition-transform duration-300 group-hover:scale-105"
           />
           {link && (
             <a
@@ -45,19 +45,19 @@ export const ProductCard = ({
           )}
         </div>
         
-        <div className="p-3 space-y-2">
+        <div className="p-3   space-y-2">
           {isStaffPick && (
-            <Badge variant="secondary" className="gap-1">
+            <Badge variant="secondary" className="gap-1 absolute bottom-20 right-5">
               <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
               Staff Pick
             </Badge>
           )}
           
-          <div className="space-y-1">
+          <div className="space-y- absolute bottom-3 left-5 ">
             <p className="text-xs text-zinc-400 ">{tag}</p>
-            <h3 className="text-zinc-600  text-foreground line-clamp-2">{title}</h3>
+            <h3 className="text-zinc-600 text-lg  text-foreground line-clamp-2">{title}</h3>
            
-            <p className="text-lg  text-zinc-400  text-foreground ">$ {price}</p>
+            <p className="text-lg text-zinc-400  text-foreground ">$ {price}</p>
           </div>
         </div>
       </div>

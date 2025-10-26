@@ -185,22 +185,28 @@ const Index = () => {
         <header className="mb-8 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-primary text-primary-foreground p-2 rounded-lg">
-                <Package2 className="w-6 h-6" />
+              <div className="bg-primary text-primary-foreground p-1 rounded-lg">
+                <Package2 className="w-2 h-2" />
               </div>
-              <h1 className="text-3xl font-semibold text-foreground">Grail</h1>
+              <h1 className="text-sm font-semibold text-foreground">Grail Spot</h1>
             </div>
+
+            <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={handleSearchClear}
+          />
 
             <div className="flex items-center gap-4">
               <AuthButton />
             </div>
           </div>
 
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onClear={handleSearchClear}
-          />
+          <div className="w-full  py-12 flex justify-center flex-col items-center">
+            <h1 className=" text-2xl text-center sm:text-4xl" style={{ fontStyle: "italic", fontWeight : 500, fontFamily: "'Source Serif 4', serif" }}>Find well crafted Quality Products.</h1>
+            <p className="mt-2 text-sm sm:w-[560px] text-zinc-600 tracking-wide text-center">
+              Grail Spot is a Community where people share aesthetic quality products they love, and discover new products they gonna love soon.</p>
+          </div>
 
           <CategoryNav
             categories={categories}
