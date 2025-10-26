@@ -1,11 +1,94 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { ProductCard } from "@/components/ProductCard";
+import { AddItemDialog } from "@/components/AddItemDialog";
+import { CategoryNav } from "@/components/CategoryNav";
+import { Package2 } from "lucide-react";
+
+interface WishlistItem {
+  id: string;
+  title: string;
+  image: string;
+  price: string;
+  tag: string;
+  link?: string;
+  description?: string;
+  isStaffPick: boolean;
+}
 
 const Index = () => {
+  const [items, setItems] = useState<WishlistItem[]>([]);
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const categories = [
+    { id: "all", name: "All", count: items.length },
+    { id: "new", name: "New" },
+    { id: "picks", name: "Picks" },
+    { id: "tech", name: "Tech" },
+    { id: "workspace", name: "Workspace" },
+    { id: "home", name: "Home" },
+    { id: "carry", name: "Carry" },
+    { id: "lifestyle", name: "Lifestyle" },
+  ];
+
+  const handleAddItem = (
+    item: Omit<WishlistItem, "id">
+  ) => {
+    const newItem = {
+      ...item,
+      id: Date.now().toString(),
+    };
+    setItems([newItem, ...items]);
+  };
+
+  const filteredItems =
+    activeCategory === "all"
+      ? items
+      : items.filter((item) =>
+          item.tag.toLowerCase().includes(activeCategory.toLowerCase())
+        );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <header className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+                <Package2 className="w-6 h-6" />
+              </div>
+              <h1 className="text-3xl font-bold text-foreground">My Wishlist</h1>
+            </div>
+          </div>
+
+          <CategoryNav
+            categories={categories}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+          />
+        </header>
+
+        {filteredItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-muted rounded-full p-8 mb-6">
+              <Package2 className="w-16 h-16 text-muted-foreground" />
+            </div>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
+              Your wishlist is empty
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-md">
+              Start building your collection by adding items you want to buy. Click the + button to
+              get started.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredItems.map((item) => (
+              <ProductCard key={item.id} {...item} />
+            ))}
+          </div>
+        )}
+
+        <AddItemDialog onAddItem={handleAddItem} />
       </div>
     </div>
   );
