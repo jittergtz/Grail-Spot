@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { AddItemDialog } from "@/components/AddItemDialog";
 import { CategoryNav } from "@/components/CategoryNav";
@@ -18,6 +18,21 @@ interface WishlistItem {
 const Index = () => {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [activeCategory, setActiveCategory] = useState("all");
+
+  // Load items from localStorage on mount
+  useEffect(() => {
+    const storedItems = localStorage.getItem("wishlistItems");
+    if (storedItems) {
+      setItems(JSON.parse(storedItems));
+    }
+  }, []);
+
+  // Save items to localStorage whenever they change
+  useEffect(() => {
+    if (items.length > 0 || localStorage.getItem("wishlistItems")) {
+      localStorage.setItem("wishlistItems", JSON.stringify(items));
+    }
+  }, [items]);
 
   const categories = [
     { id: "all", name: "All", count: items.length },
