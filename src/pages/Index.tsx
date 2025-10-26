@@ -4,6 +4,8 @@ import { AddItemDialog } from "@/components/AddItemDialog";
 import { CategoryNav } from "@/components/CategoryNav";
 import { SearchBar } from "@/components/SearchBar";
 import { Package2 } from "lucide-react";
+import { AuthButton } from "@/components/AuthButton";
+import { supabase } from "@/lib/supabase";
 
 interface WishlistItem {
   id: string;
@@ -20,13 +22,67 @@ const Index = () => {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [user, setUser] = useState<any>(null);
 
-  // Load items from localStorage on mount
+  // Load items from Supabase (public + owner if logged in) on mount
   useEffect(() => {
-    const storedItems = localStorage.getItem("wishlistItems");
-    if (storedItems) {
-      setItems(JSON.parse(storedItems));
-    }
+    let mounted = true;
+
+    const fetchItems = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      if (!mounted) return;
+      setUser(currentUser);
+
+      const query = supabase
+        .from("wishlist_items")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (!currentUser) {
+        query.eq("is_public", true);
+      } else {
+        query.or(`is_public.eq.true,user_id.eq.${currentUser.id}`);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error(error);
+        return;
+      }
+      if (!mounted) return;
+      setItems(
+        (data ?? []).map((d: any) => ({
+          id: d.id,
+          title: d.title,
+          image: d.image,
+          price: d.price,
+          tag: d.tag,
+          link: d.link,
+          description: d.description,
+          isStaffPick: d.is_staff_pick,
+        }))
+      );
+    };
+
+    fetchItems();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      fetchItems();
+    });
+
+    return () => {
+      mounted = false;
+      try {
+        if (listener && (listener as any).subscription && typeof (listener as any).subscription.unsubscribe === "function") {
+          (listener as any).subscription.unsubscribe();
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
   }, []);
 
   // Save items to localStorage whenever they change
@@ -47,14 +103,58 @@ const Index = () => {
     { id: "lifestyle", name: "Lifestyle" },
   ];
 
-  const handleAddItem = (
-    item: Omit<WishlistItem, "id">
-  ) => {
-    const newItem = {
-      ...item,
-      id: Date.now().toString(),
-    };
-    setItems([newItem, ...items]);
+  const handleAddItem = async (item: Omit<WishlistItem, "id"> & { isPublic?: boolean }) => {
+    // If user is logged in, insert into Supabase. Otherwise fallback to local state.
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+
+      if (currentUser) {
+        const res = await supabase.from("wishlist_items").insert({
+          user_id: currentUser.id,
+          title: item.title,
+          image: item.image,
+          price: item.price,
+          tag: item.tag,
+          link: item.link,
+          description: item.description,
+          is_staff_pick: item.isStaffPick ?? false,
+          is_public: item.isPublic ?? true,
+        });
+
+        const insertedData = res.data as any[] | null;
+        const error = res.error;
+        if (error) throw error;
+
+        // Prepend to local list for instant feedback if returned
+        const inserted = insertedData && Array.isArray(insertedData) && insertedData.length > 0 ? insertedData[0] : null;
+        if (inserted) {
+          setItems((prev) => [
+            {
+              id: inserted.id,
+              title: inserted.title,
+              image: inserted.image,
+              price: inserted.price,
+              tag: inserted.tag,
+              link: inserted.link,
+              description: inserted.description,
+              isStaffPick: inserted.is_staff_pick,
+            },
+            ...prev,
+          ]);
+        }
+      } else {
+        const newItem = {
+          ...item,
+          id: Date.now().toString(),
+        };
+        setItems([newItem, ...items]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSearchClear = () => {
@@ -80,7 +180,7 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-zinc-200">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8 space-y-6">
           <div className="flex items-center justify-between">
@@ -88,7 +188,11 @@ const Index = () => {
               <div className="bg-primary text-primary-foreground p-2 rounded-lg">
                 <Package2 className="w-6 h-6" />
               </div>
-              <h1 className="text-3xl font-bold text-foreground">My Wishlist</h1>
+              <h1 className="text-3xl font-semibold text-foreground">Grail</h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <AuthButton />
             </div>
           </div>
 
@@ -132,7 +236,7 @@ const Index = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1  sm:grid-cols-2 lg:grid-cols-3  gap-6">
             {filteredItems.map((item) => (
               <ProductCard key={item.id} {...item} />
             ))}

@@ -87,7 +87,7 @@ const ItemDetail = () => {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-6">
           <Link to="/">
-            <Button variant="ghost" className="gap-2">
+            <Button variant="ghost" className="gap-2 rounded-full border border-zinc-300">
               <ArrowLeft className="w-4 h-4" />
               Back to Wishlist
             </Button>
@@ -126,7 +126,7 @@ const ItemDetail = () => {
                   <EditItemDialog item={item} onEdit={handleEdit} />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="icon" className="shrink-0">
+                      <Button variant="outline" size="icon" className="shrink-0 rounded-full">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </AlertDialogTrigger>
@@ -152,19 +152,19 @@ const ItemDetail = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <p className="text-4xl font-bold text-foreground">
-                    {item.price}
+                  <p className="text-3xl font-semibold text-zinc-500 text-foreground">
+                   ${item.price}
                   </p>
                 </div>
 
                 {item.description && (
                   <div>
-                    <h2 className="text-sm font-semibold text-foreground mb-2">
+                    <h2 className="text-sm font-semibold text-zinc-500 mb-2">
                       Description
                     </h2>
-                    <p className="text-muted-foreground leading-relaxed">
+                    <p className="text-zinc-800 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
