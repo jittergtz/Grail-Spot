@@ -39,7 +39,7 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
     link: "",
     description: "",
     isStaffPick: false,
-    isPublic: true,
+    isPublic: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +70,7 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
         link: "",
         description: "",
         isStaffPick: false,
-        isPublic: true,
+        isPublic: false,
       });
 
       setOpen(false);

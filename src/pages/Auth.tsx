@@ -38,13 +38,13 @@ const Auth = () => {
   return (
     <div className="h-screen flex">
       <div className="hidden md:block w-1/2 h-screen">
-        <img src="/placeholder.svg" alt="Auth image" className="w-full h-full object-cover" />
+        <img src="/Auth.png" alt="Auth image" className="w-full h-full object-cover" />
       </div>
 
       <div className="flex-1 w-full md:w-1/2 flex items-center justify-center">
         <div className="max-w-md w-full p-8">
           <div className="mb-6">
-            <h1 className="text-3xl font-semibold">Welcome back</h1>
+            <h1 className="text-3xl font-semibold">Welcome to <span style={{ fontStyle: "italic", fontWeight: 500, fontFamily: "'Source Serif 4', serif" }}>Grail</span> Spot</h1>
             <p className="text-muted-foreground">Sign in to manage your wishlist</p>
           </div>
 
