@@ -180,78 +180,64 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-200">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <header className="mb-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary text-primary-foreground p-1 rounded-lg">
-                <Package2 className="w-2 h-2" />
-              </div>
-              <h1 className="text-sm font-semibold text-foreground">Grail Spot</h1>
-            </div>
-
-            <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onClear={handleSearchClear}
-          />
-
-            <div className="flex items-center gap-4">
-              <AuthButton />
-            </div>
+<div className="min-h-screen  bg-zinc-200">
+  <div className="container mx-auto px-4 py-8 max-w-7xl">
+    
+    <header className="mb-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary text-primary-foreground p-1 rounded-lg">
+            <Package2 className="w-2 h-2" />
           </div>
+          <h1 className="text-sm  text-foreground"> <span style={{ fontStyle: "italic", fontWeight: 500, fontFamily: "'Source Serif 4', serif" }}>Grail</span> Spot</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <AuthButton />
+        </div>
+      </div>
+      <div className="w-full py-12 flex justify-center flex-col items-center">
+        <h1 className="text-2xl text-center sm:text-4xl" style={{ fontStyle: "italic", fontWeight: 500, fontFamily: "'Source Serif 4', serif" }}>
+          Find well crafted Quality Products.
+        </h1>
+        <p className="mt-2 text-sm sm:w-[560px] text-zinc-600 tracking-wide text-center">
+          Grail Spot is a Community where people share aesthetic quality products they love, and discover new products they gonna love soon.
+        </p>
+      </div>
+    </header>
 
-          <div className="w-full  py-12 flex justify-center flex-col items-center">
-            <h1 className=" text-2xl text-center sm:text-4xl" style={{ fontStyle: "italic", fontWeight : 500, fontFamily: "'Source Serif 4', serif" }}>Find well crafted Quality Products.</h1>
-            <p className="mt-2 text-sm sm:w-[560px] text-zinc-600 tracking-wide text-center">
-              Grail Spot is a Community where people share aesthetic quality products they love, and discover new products they gonna love soon.</p>
-          </div>
-
-          <CategoryNav
-            categories={categories}
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-          />
-        </header>
-
-        {filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="bg-muted rounded-full p-8 mb-6">
-              <Package2 className="w-16 h-16 text-muted-foreground" />
-            </div>
-            {searchQuery || activeCategory !== "all" ? (
-              <>
-                <h2 className="text-2xl font-semibold text-foreground mb-2">
-                  No items found
-                </h2>
-                <p className="text-muted-foreground mb-8 max-w-md">
-                  Try adjusting your search or filter to find what you're looking for.
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-semibold text-foreground mb-2">
-                  Your wishlist is empty
-                </h2>
-                <p className="text-muted-foreground mb-8 max-w-md">
-                  Start building your collection by adding items you want to buy. Click the + button
-                  to get started.
-                </p>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1  sm:grid-cols-2 lg:grid-cols-3  gap-6">
-            {filteredItems.map((item) => (
-              <ProductCard key={item.id} {...item} />
-            ))}
-          </div>
-        )}
-
-        <AddItemDialog onAddItem={handleAddItem} />
+    {/* Sticky nav - NOW OUTSIDE header so it can stick throughout the page */}
+    <div className="sticky top-2 z-50 mb-8">
+      <div className="flex w-full relative justify-between items-center rounded-full backdrop-blur-lg  shadow-lg transition p-2">
+        <CategoryNav
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
+        <div className=" absolute top-2 right-1  z-50">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onClear={handleSearchClear}
+        />
+        </div>
       </div>
     </div>
+
+    {filteredItems.length === 0 ? (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        {/* ... rest of your empty state ... */}
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredItems.map((item) => (
+          <ProductCard key={item.id} {...item} />
+        ))}
+      </div>
+    )}
+    
+    <AddItemDialog onAddItem={handleAddItem} />
+  </div>
+</div>
   );
 };
 

@@ -1,4 +1,4 @@
-import { ExternalLink, Star } from "lucide-react";
+import { BadgeCheck, ExternalLink, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -48,7 +48,7 @@ export const ProductCard = ({
         <div className="p-3   space-y-2">
           {isStaffPick && (
             <Badge variant="secondary" className="gap-1 absolute bottom-20 right-5">
-              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+             <BadgeCheck className="w-4 h-4 text-amber-300  " />
               Staff Pick
             </Badge>
           )}
