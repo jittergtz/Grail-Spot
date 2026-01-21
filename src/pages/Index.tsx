@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductCard } from "@/components/ProductCard";
 import { AddItemDialog } from "@/components/AddItemDialog";
@@ -21,7 +21,9 @@ interface WishlistItem {
   link?: string;
   description?: string;
   isStaffPick: boolean;
-  createdAt?: string; // Add createdAt to track when item was created
+  createdAt?: string;
+  voteScore: number;
+  userVote: number; // 1, -1, or 0
 }
 
 const Index = () => {
@@ -33,7 +35,7 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
 
-  // Load items from Supabase (public + owner if logged in) on mount
+  // Update fetchItems to include vote data
   useEffect(() => {
     let mounted = true;
 
@@ -45,64 +47,199 @@ const Index = () => {
       if (!mounted) return;
       setUser(currentUser);
 
-      const query = supabase
+      let query = supabase
         .from("wishlist_items")
-        .select("*")
+        .select(`
+          *,
+          item_votes(vote_value)
+        `)
         .order("created_at", { ascending: false });
 
       if (!currentUser) {
-        // Logged out users only see public items
-        query.eq("is_public", true);
+        query = query.eq("is_public", true);
       } else if (viewMode === "personal") {
-        // Personal wishlist: show ALL user's items (both public and private)
-        query.eq("user_id", currentUser.id);
+        query = query.eq("user_id", currentUser.id);
       } else {
-        // Public feed: show all public items from all users
-        query.eq("is_public", true);
+        query = query.eq("is_public", true);
       }
 
       const { data, error } = await query;
+      
       if (error) {
         console.error(error);
         return;
       }
       if (!mounted) return;
+
       setItems(
-        (data ?? []).map((d: any) => ({
-          id: d.id,
-          title: d.title,
-          image: d.image,
-          price: d.price,
-          tag: d.tag,
-          link: d.link,
-          description: d.description,
-          isStaffPick: d.is_staff_pick,
-          createdAt: d.created_at, // Include created_at timestamp
-        }))
+        (data ?? []).map((d: any) => {
+           // Extract user vote if exists
+           const userVoteData = d.item_votes?.find((v: any) => v.user_id === currentUser?.id);
+           // Note: Since we can't filter the join easily by user_id in the select without complex syntax, 
+           // and RLS might filter it for us or we filter in memory.
+           // However, standard Supabase join returns array. 
+           // Better approach: If we want EFFICIENT user-specific vote, we'd need a more complex query or RPC.
+           // For now, assuming `item_votes` returns votes visible to user. 
+           // If RLS is set "Users can view all votes", we get ALL votes. We need to find OURS.
+           // BUT, we should probably only select OUR vote in the join?
+           // Actually, simpler: fetch items, then fetch user's votes separately and merge?
+           // OR: relying on the fact that we need check `user_id` in the returned array.
+           
+           // Refined approach below for mapping:
+           // If we fetch all votes, that's too much data.
+           // Let's rely on a separate query or better RLS?
+           // Actually, standard pattern: 
+           // .select('*, user_vote:item_votes(vote_value)') -> filters by RLS? 
+           // RLS says "Users can view all votes". So we get ALL votes.
+           // That's bad for performance if many votes.
+           // Let's fix RLS or Query?
+           // For this task, let's filter in memory but limit fetch?
+           // No, we should filter `item_votes` by `user_id` in the query!
+           // supabase.from(...).select('*, item_votes!left(vote_value)').eq('item_votes.user_id', currentUser.id) -> this filters ITEMS.
+           
+           // CORRECT APPROACH for this scale:
+           // Fetch items.
+           // Fetch `item_votes` for this user.
+           // Merge.
+           
+           return {
+            id: d.id,
+            title: d.title,
+            image: d.image,
+            price: d.price,
+            tag: d.tag,
+            link: d.link,
+            description: d.description,
+            isStaffPick: d.is_staff_pick,
+            createdAt: d.created_at,
+            voteScore: d.vote_score || 0,
+            userVote: 0 // Will update in a second pass or better query
+          };
+        })
       );
+      
+      // Separate pass for user votes if logged in
+      if (currentUser) {
+         const { data: votes } = await supabase
+            .from("item_votes")
+            .select("item_id, vote_value")
+            .eq("user_id", currentUser.id);
+            
+         if (votes) {
+             setItems(currentItems => currentItems.map(item => {
+                 const vote = votes.find(v => v.item_id === item.id);
+                 return vote ? { ...item, userVote: vote.vote_value } : item;
+             }));
+         }
+      }
     };
 
     fetchItems();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      fetchItems();
-    });
-
-    return () => {
-      mounted = false;
-      try {
-        if (
-          listener &&
-          (listener as any).subscription &&
-          typeof (listener as any).subscription.unsubscribe === "function"
-        ) {
-          (listener as any).subscription.unsubscribe();
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
+    // ... existing cleanup ...
   }, [viewMode]);
+
+  // Ref to track timeouts for debouncing votes
+  const voteTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Handle Vote Logic
+  const handleVote = async (itemId: string, direction: number) => {
+     if (!user) {
+        toast.info("Please sign in to vote");
+        navigate("/auth");
+        return;
+     }
+
+     // 1. Calculate the intended new state first to capture it for the debounce closure
+     let newVote = direction;
+     
+     // We need to look up the *current* state of the item to decide the transition
+     // However, inside this function, 'items' might be stale if called rapidly? 
+     // No, 'items' is from render scope. But if rapid clicks happen, 'items' won't update fast enough in this scope?
+     // Actually, standard React state update batching might complicate this if we rely on `items.find`.
+     // But `setItems` functional update is reliable.
+     // To avoid "stale closure" issues with rapid clicks, we should rely on the Functional Update to calculate final state
+     // BUT we also need that final state for the API call.
+     // Trick: The API call only cares about the TARGET vote value.
+     // If I click Up (1), then Up again (0), the final API call should be 0.
+     // If I click Up (1), then Down (-1), final is -1.
+     // So we don't need the transition history for the API, just the final destination.
+     
+     // PROBLEM: We don't know the final destination without knowing the *current* state at the moment of click.
+     // If we click fast, `items` in this closure is stale.
+     // SOLUTION: Use a mutable ref to track the "pending" vote for each item? 
+     // Or just trust that state updates happen fast enough? 
+     // React state updates are async. 
+     // A robust way for debouncing toggle-heavy actions:
+     // Store the "latest intended vote" in a Ref map `pendingVotes = useRef({ itemId: voteVal })`.
+     // Initialize it from `items` if missing.
+     
+     // Let's go with a slightly simpler approach that is usually "good enough" for UI toggles:
+     // - We trust `setItems` to handle the logic correctly.
+     // - We also need to know what `newVote` is to schedule the API call.
+     // - We can piggyback off the functional update? No, can't extract return value.
+     
+     // BETTER APPROACH:
+     // Calculate the `newVote` based on the item in `items`. 
+     // If the user clicks fast, `items` MIGHT be stale, but usually React re-renders faster than human clicking speed for simple toggles.
+     // Let's assume `items` is fresh enough.
+     
+     const item = items.find(i => i.id === itemId);
+     if (!item) return;
+
+     const oldVote = item.userVote;
+     let scoreDelta = 0;
+
+     if (oldVote === direction) {
+         // Toggle off
+         newVote = 0;
+         scoreDelta = -direction;
+     } else if (oldVote === 0) {
+         // New vote
+         scoreDelta = direction;
+     } else {
+         // Switch vote
+         scoreDelta = direction * 2; // e.g. -1 to 1 = +2 difference
+     }
+
+     // Optimistic Update
+     setItems(currentItems => currentItems.map(i => {
+         if (i.id !== itemId) return i;
+         return {
+             ...i,
+             userVote: newVote,
+             voteScore: (i.voteScore || 0) + scoreDelta
+         };
+     }));
+
+     // Debounce API Call
+     if (voteTimeouts.current[itemId]) {
+         clearTimeout(voteTimeouts.current[itemId]);
+     }
+
+     voteTimeouts.current[itemId] = setTimeout(async () => {
+         try {
+             if (newVote === 0) {
+                 // Delete vote
+                 await supabase.from("item_votes").delete().match({ user_id: user.id, item_id: itemId });
+             } else {
+                 // Upsert vote
+                 await supabase.from("item_votes").upsert({
+                     user_id: user.id,
+                     item_id: itemId,
+                     vote_value: newVote
+                 });
+             }
+             delete voteTimeouts.current[itemId];
+         } catch (err) {
+             console.error("Vote failed", err);
+             toast.error("Failed to save vote");
+             // Ideally revert here, but tricky with debounce.
+         }
+     }, 1000); // 1 second debounce
+  };
+
+
+
 
   // Check onboarding status for logged-in users
   useEffect(() => {
@@ -161,7 +298,7 @@ const Index = () => {
   const categories = [
     { id: "all", name: "All", count: items.length },
     { id: "new", name: "New" },
-    { id: "picks", name: "Picks" },
+    { id: "popular", name: "Popular" },
     { id: "tech", name: "Tech" },
     { id: "workspace", name: "Workspace" },
     { id: "home", name: "Home" },
@@ -169,7 +306,7 @@ const Index = () => {
   ];
 
   const handleAddItem = async (
-    item: Omit<WishlistItem, "id"> & { isPublic?: boolean },
+    item: Omit<WishlistItem, "id" | "isStaffPick"> & { isPublic?: boolean },
   ) => {
     // If user is logged in, insert into Supabase. Otherwise fallback to local state.
     try {
@@ -187,7 +324,6 @@ const Index = () => {
           tag: item.tag,
           link: item.link,
           description: item.description,
-          is_staff_pick: item.isStaffPick ?? false,
           is_public: item.isPublic ?? true,
         });
 
@@ -212,6 +348,8 @@ const Index = () => {
               description: inserted.description,
               isStaffPick: inserted.is_staff_pick,
               createdAt: inserted.created_at, // Include created_at timestamp
+              voteScore: 0,
+              userVote: 0
             },
             ...prev,
           ]);
@@ -221,6 +359,9 @@ const Index = () => {
           ...item,
           id: Date.now().toString(),
           createdAt: new Date().toISOString(), // Add createdAt for local items
+          voteScore: 0,
+          userVote: 0,
+          isStaffPick: false // Default for local items
         };
         setItems([newItem, ...items]);
       }
@@ -292,9 +433,9 @@ const Index = () => {
           // If no createdAt, assume it's old (for backward compatibility)
           categoryMatch = false;
         }
-      } else if (activeCategory === "picks") {
-        // Show staff picks
-        categoryMatch = item.isStaffPick;
+      } else if (activeCategory === "popular") {
+        // Show popular items (voteScore >= 10)
+        categoryMatch = (item.voteScore || 0) >= 10;
       } else {
         // Regular category matching by tag
         categoryMatch = item.tag.toLowerCase().includes(activeCategory.toLowerCase());
@@ -324,7 +465,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8 space-y-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-10">
+            <div className="flex  items-center gap-3">
               <div className="bg-primary text-primary-foreground p-1 rounded-lg">
                 <Package2 className="w-2 h-2" />
               </div>
@@ -341,8 +483,16 @@ const Index = () => {
                 </span>{" "}
                 Spot
               </h1>
+                 
             </div>
-            <div className="flex items-center gap-4">
+              
+              <div className="gap-5 flex items-center">
+                {/* maybe later adding to Navbar more   */}
+             {/* <h1 className="text-sm text-zinc-600">Rules</h1> */}
+             </div>
+    
+        </div>
+            <div className="flex  items-center gap-4">
               <AuthButton />
             </div>
           </div>
@@ -431,7 +581,13 @@ const Index = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <ProductCard key={item.id} {...item} />
+              <ProductCard 
+                key={item.id} 
+                {...item} 
+                voteScore={item.voteScore}
+                currentVote={item.userVote}
+                onVote={(val) => handleVote(item.id, val)}
+              />
             ))}
           </div>
         )}

@@ -38,7 +38,7 @@ const Auth = () => {
   return (
     <div className="h-screen flex">
       <div className="hidden md:block w-1/2 h-screen">
-        <img src="/grailspotauth.jpg" alt="Auth image" className="w-full h-full object-cover" />
+        <img  src="/AuthV2Background.jpg" alt="Auth image" className="w-full select-none  h-full object-cover" />
       </div>
 
       <div className="flex-1 w-full md:w-1/2 flex items-center justify-center">
@@ -52,6 +52,7 @@ const Auth = () => {
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
+              className="rounded-full"
                 id="email"
                 type="email"
                 value={email}
@@ -62,10 +63,10 @@ const Auth = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <Button  type="submit" disabled={loading}>
+              <Button className="rounded-full tracking-tight text-[13px]"  type="submit" disabled={loading}>
                 {loading ? "Sending…" : "Send magic link"}
               </Button>
-              <Link to="/" className="text-sm text-muted-foreground">
+              <Link to="/" className="text-sm  text-[13px] text-muted-foreground">
                 Back
               </Link>
             </div>
