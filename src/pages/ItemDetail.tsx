@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Edit, Trash2, Star } from "lucide-react";
+import { ArrowLeft, ExternalLink, Edit, Trash2, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -167,12 +167,64 @@ const ItemDetail = () => {
           link: data.link,
           description: data.description,
           isStaffPick: data.is_staff_pick,
+          userId: data.user_id,
         });
         toast.success("Item updated successfully");
       }
     } catch (err) {
       console.error(err);
       toast.error("Failed to update item");
+    }
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!currentUserId) {
+      toast.info("Please sign in to add items to your wishlist");
+      navigate("/auth");
+      return;
+    }
+
+    if (!item) return;
+
+    try {
+      // Check for duplicates
+      const { data: existingItems, error: checkError } = await supabase
+        .from("wishlist_items")
+        .select("id")
+        .eq("user_id", currentUserId)
+        .eq("title", item.title)
+        .single();
+
+      if (existingItems) {
+        toast.info("Item is already in your wishlist");
+        return;
+      }
+      
+      // Proceed with insert if no duplicate found (PGRST116 means no rows found, which is what we want)
+      if (checkError && checkError.code !== "PGRST116") {
+         throw checkError;
+      }
+
+      const { error } = await supabase.from("wishlist_items").insert({
+        user_id: currentUserId,
+        title: item.title,
+        image: item.image,
+        price: item.price,
+        tag: item.tag,
+        link: item.link,
+        description: item.description,
+        is_staff_pick: false, // Don't carry over staff pick status automatically
+        is_public: false, // Default to private
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Added to your personal wishlist");
+    } catch (err) {
+      console.error("Error adding to wishlist:", err);
+      toast.error("Failed to add to wishlist");
     }
   };
 
@@ -226,37 +278,50 @@ const ItemDetail = () => {
                     {item.title}
                   </h1>
                 </div>
-                {currentUserId && item.userId && currentUserId === item.userId && (
-                  <div className="flex border bg-zinc-100 border-zinc-300 p-1 pl-5 rounded-full items-center gap-2">
-                    <h1>Edit Item</h1>
-                    <EditItemDialog  item={item} onEdit={handleEdit} />
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button  variant="outline" size="icon" className="shrink-0 border-0 bg-rose-800 hover:bg-rose-700 hover:text-white/90 text-rose-300  rounded-full">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Item</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this item from your
-                            wishlist? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDelete}
-                            className="bg-destructive  text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                )}
+                
+                <div className="flex items-center gap-2">
+                  {/* Add to Personal Wishlist Button */}
+                  {currentUserId && (!item.userId || item.userId !== currentUserId) && (
+                     <Button
+                       onClick={handleAddToWishlist}
+                       className="h-10 w-10 p-0 rounded-full bg-amber-200 hover:bg-amber-100 text-zinc-800 transition-colors"
+                     >
+                       <Heart className="w-5 h-5 fill-current" />
+                     </Button>
+                  )}
+
+                  {currentUserId && item.userId && currentUserId === item.userId && (
+                    <div className="flex border bg-zinc-100 border-zinc-300 p-1 pl-5 rounded-full items-center gap-2">
+                      <h1>Edit Item</h1>
+                      <EditItemDialog  item={item} onEdit={handleEdit} />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button  variant="outline" size="icon" className="shrink-0 border-0 bg-rose-800 hover:bg-rose-700 hover:text-white/90 text-rose-300  rounded-full">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this item from your
+                              wishlist? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDelete}
+                              className="bg-destructive  text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-3">

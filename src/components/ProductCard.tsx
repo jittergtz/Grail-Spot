@@ -1,4 +1,4 @@
-import { BadgeCheck, ExternalLink, Star } from "lucide-react";
+import { BadgeCheck, ExternalLink, Star, ArrowBigUp, ArrowBigDown, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -11,6 +11,9 @@ interface ProductCardProps {
   link?: string;
   description?: string;
   isStaffPick?: boolean;
+  voteScore?: number;
+  currentVote?: number; // 1 for up, -1 for down, 0 or undefined for none
+  onVote?: (value: number) => void;
 }
 
 export const ProductCard = ({
@@ -22,6 +25,9 @@ export const ProductCard = ({
   link,
   description,
   isStaffPick,
+  voteScore = 0,
+  currentVote = 0,
+  onVote,
 }: ProductCardProps) => {
   return (
     <Link to={`/item/${id}`} className="block">
@@ -46,18 +52,56 @@ export const ProductCard = ({
         </div>
         
         <div className="p-3   space-y-2">
-          {isStaffPick && (
+          {voteScore >= 10 && (
             <Badge variant="secondary" className="gap-1 absolute bottom-20 right-5">
-             <BadgeCheck className="w-4 h-4 text-amber-300  " />
-              Staff Pick
+             <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
+              Popular
             </Badge>
           )}
           
-          <div className="space-y- absolute bottom-3 left-5 ">
+          <div className="space-y-  w-full absolute bottom-3 left-5 ">
             <p className="text-xs text-zinc-400 ">{tag}</p>
-            <h3 className="text-zinc-600 text-lg  text-foreground line-clamp-2">{title}</h3>
+            <h3 className="text-zinc-600  text-lg  text-foreground line-clamp-2">{title}</h3>
            
-            <p className="text-lg text-zinc-400  text-foreground ">$ {price}</p>
+           <div className="flex items-center  justify-between w-full mt-2  pr-8">
+             <p className="text-lg text-zinc-400  text-foreground ">$ {price}</p>
+            
+            {/* Voting UI */}
+            <div className="flex items-center gap-1 bg-zinc-100 rounded-full px-2 py-1" onClick={(e) => e.preventDefault()}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onVote && onVote(1);
+                }}
+                className={`p-1 rounded-full hover:bg-zinc-200 transition-colors ${
+                  currentVote === 1 ? "text-orange-500" : "text-zinc-500"
+                }`}
+              >
+                <ArrowBigUp className={`w-5 h-5 ${currentVote === 1 ? "fill-current" : ""}`} />
+              </button>
+              
+              <span className={`text-sm font-medium ${
+                currentVote === 1 ? "text-orange-500" : 
+                currentVote === -1 ? "text-indigo-500" : "text-zinc-600"
+              }`}>
+                {voteScore || 0}
+              </span>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onVote && onVote(-1);
+                }}
+                className={`p-1 rounded-full hover:bg-zinc-200 transition-colors ${
+                  currentVote === -1 ? "text-indigo-500" : "text-zinc-500"
+                }`}
+              >
+                <ArrowBigDown className={`w-5 h-5 ${currentVote === -1 ? "fill-current" : ""}`} />
+              </button>
+            </div>
+            </div>
           </div>
         </div>
       </div>
