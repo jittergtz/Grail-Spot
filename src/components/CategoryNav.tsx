@@ -12,7 +12,7 @@ export const CategoryNav = ({
   onCategoryChange,
 }: CategoryNavProps) => {
   return (
-    <nav className="flex z-50 justify-center items-center gap-2 overflow-x-auto  scrollbar-hide">
+    <nav className="flex z-50 justify-start items-center rounded-xl gap-2 overflow-x-auto sm:w-full w-64 shrink-0 flex-nowrap scrollbar-hide">
       {categories.map((category) => (
         <button
           key={category.id}

@@ -389,7 +389,7 @@ const Index = () => {
         {/* Sticky nav - NOW OUTSIDE header so it can stick throughout the page */}
         <div className="sticky top-2 z-50 mb-8">
           <motion.div
-            className="flex w-full relative justify-between items-center rounded-full backdrop-blur-lg shadow-lg transition p-2"
+            className="flex w-full relativ  justify-between items-center rounded-full backdrop-blur-lg shadow-lg transition p-2"
             animate={{ backgroundColor: navBgColor }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
@@ -407,7 +407,7 @@ const Index = () => {
                   className={`h-10 w-10 rounded-full ${
                     viewMode === "personal"
                       ? "bg-amber-200 hover:bg-amber-100 text-zinc-800"
-                      : "bg-white/80 hover:bg-white text-zinc-600"
+                      : "bg-zinc-100 hover:bg-white text-zinc-600"
                   } transition-colors`}
                 >
                   <Heart
