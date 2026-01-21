@@ -198,10 +198,10 @@ const ItemDetail = () => {
           </Link>
         </div>
 
-        <div className="bg-card rounded-xl overflow-hidden shadow-lg">
-          <div className="grid md:grid-cols-2 gap-8 p-8">
+        <div className="bg-card rounded-2xl overflow-hidden shadow-lg">
+          <div className="grid md:grid-cols-1 gap-8 p-8">
             <div className="space-y-4">
-              <div className="aspect-square  border flex p-4 items-center justify-center bg-white rounded-lg overflow-hidden">
+              <div className="  flex  p-4 items-center justify-center bg-white rounded-lg overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.title}
@@ -227,11 +227,12 @@ const ItemDetail = () => {
                   </h1>
                 </div>
                 {currentUserId && item.userId && currentUserId === item.userId && (
-                  <div className="flex gap-2">
-                    <EditItemDialog item={item} onEdit={handleEdit} />
+                  <div className="flex border bg-zinc-100 border-zinc-300 p-1 pl-5 rounded-full items-center gap-2">
+                    <h1>Edit Item</h1>
+                    <EditItemDialog  item={item} onEdit={handleEdit} />
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="shrink-0 rounded-full">
+                        <Button  variant="outline" size="icon" className="shrink-0 border-0 bg-rose-800 hover:bg-rose-700 hover:text-white/90 text-rose-300  rounded-full">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -247,7 +248,7 @@ const ItemDetail = () => {
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive  text-destructive-foreground hover:bg-destructive/90"
                           >
                             Delete
                           </AlertDialogAction>
@@ -284,8 +285,8 @@ const ItemDetail = () => {
                       rel="noopener noreferrer"
                       className="inline-flex"
                     >
-                      <Button className="gap-2">
-                        <ExternalLink className="w-4 h-4" />
+                      <Button className="gap-2 rounded-full px-6">
+                        <ExternalLink className="w-4 h-4 " />
                         View Product
                       </Button>
                     </a>

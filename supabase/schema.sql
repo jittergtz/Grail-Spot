@@ -6,6 +6,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users on delete cascade,
   username text,
   avatar_url text,
+  has_completed_onboarding boolean default false,
   updated_at timestamptz default now()
 );
 
@@ -41,4 +42,24 @@ create policy update_delete_owner on public.wishlist_items
   for update, delete
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+
+-- Enable RLS on profiles table
+alter table public.profiles enable row level security;
+
+-- Allow users to view their own profile
+create policy select_own_profile on public.profiles
+  for select
+  using (auth.uid() = id);
+
+-- Allow users to update their own profile
+create policy update_own_profile on public.profiles
+  for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+-- Allow users to insert their own profile
+create policy insert_own_profile on public.profiles
+  for insert
+  with check (auth.uid() = id);
 
