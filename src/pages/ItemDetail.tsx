@@ -265,12 +265,7 @@ const ItemDetail = () => {
             <div className="space-y-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-2 flex-1">
-                  {item.isStaffPick && (
-                    <Badge variant="secondary" className="gap-1">
-                      <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                      Staff Pick
-                    </Badge>
-                  )}
+                
                   <p className="text-sm text-muted-foreground font-medium">
                     {item.tag}
                   </p>
@@ -284,7 +279,7 @@ const ItemDetail = () => {
                   {currentUserId && (!item.userId || item.userId !== currentUserId) && (
                      <Button
                        onClick={handleAddToWishlist}
-                       className="h-10 w-10 p-0 rounded-full bg-amber-200 hover:bg-amber-100 text-zinc-800 transition-colors"
+                       className="h-10 w-10 p-0 rounded-full bg-zinc-100 hover:bg-amber-200 text-zinc-800 transition-colors"
                      >
                        <Heart className="w-5 h-5 fill-current" />
                      </Button>

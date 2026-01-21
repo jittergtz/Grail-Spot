@@ -465,7 +465,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8 space-y-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-10">
+            <div className="flex  items-center gap-3">
               <div className="bg-primary text-primary-foreground p-1 rounded-lg">
                 <Package2 className="w-2 h-2" />
               </div>
@@ -482,8 +483,16 @@ const Index = () => {
                 </span>{" "}
                 Spot
               </h1>
+                 
             </div>
-            <div className="flex items-center gap-4">
+              
+              <div className="gap-5 flex items-center">
+                {/* maybe later adding to Navbar more   */}
+             {/* <h1 className="text-sm text-zinc-600">Rules</h1> */}
+             </div>
+    
+        </div>
+            <div className="flex  items-center gap-4">
               <AuthButton />
             </div>
           </div>
