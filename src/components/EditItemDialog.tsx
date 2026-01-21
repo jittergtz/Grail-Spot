@@ -66,7 +66,7 @@ export const EditItemDialog = ({ item, onEdit }: EditItemDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="shrink-0">
+        <Button variant="outline" size="icon" className="shrink-0 border-0 bg-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-700 rounded-full">
           <Edit className="w-4 h-4" />
         </Button>
       </DialogTrigger>
@@ -145,7 +145,7 @@ export const EditItemDialog = ({ item, onEdit }: EditItemDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-description">Description (Optional)</Label>
+            <Label className="text-zinc-600" htmlFor="edit-description">Description (Optional)</Label>
             <Textarea
               id="edit-description"
               value={formData.description}

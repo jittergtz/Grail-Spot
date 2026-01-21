@@ -1,4 +1,4 @@
-import { ExternalLink, Star } from "lucide-react";
+import { BadgeCheck, ExternalLink, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,12 +25,12 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   return (
     <Link to={`/item/${id}`} className="block">
-      <div className="group relative bg-card rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer">
-        <div className="relative aspect-square bg-muted overflow-hidden">
+      <div className="group w-full h-[420px]    relative bg-card rounded-3xl overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer">
+        <div className="relative flex p-4 justify-center  bg-white overflow-hidden">
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="  max-h-64 rounded-3xl object-cover bg transition-transform duration-300 group-hover:scale-105"
           />
           {link && (
             <a
@@ -45,21 +45,19 @@ export const ProductCard = ({
           )}
         </div>
         
-        <div className="p-4 space-y-2">
+        <div className="p-3   space-y-2">
           {isStaffPick && (
-            <Badge variant="secondary" className="gap-1">
-              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+            <Badge variant="secondary" className="gap-1 absolute bottom-20 right-5">
+             <BadgeCheck className="w-4 h-4 text-amber-300  " />
               Staff Pick
             </Badge>
           )}
           
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-medium">{tag}</p>
-            <h3 className="font-semibold text-foreground line-clamp-2">{title}</h3>
-            {description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
-            )}
-            <p className="text-lg font-bold text-foreground pt-1">{price}</p>
+          <div className="space-y- absolute bottom-3 left-5 ">
+            <p className="text-xs text-zinc-400 ">{tag}</p>
+            <h3 className="text-zinc-600 text-lg  text-foreground line-clamp-2">{title}</h3>
+           
+            <p className="text-lg text-zinc-400  text-foreground ">$ {price}</p>
           </div>
         </div>
       </div>

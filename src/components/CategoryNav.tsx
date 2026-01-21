@@ -12,13 +12,13 @@ export const CategoryNav = ({
   onCategoryChange,
 }: CategoryNavProps) => {
   return (
-    <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+    <nav className="flex z-50 justify-start items-center rounded-xl gap-2 overflow-x-auto sm:w-full w-64 shrink-0 flex-nowrap scrollbar-hide">
       {categories.map((category) => (
         <button
           key={category.id}
           onClick={() => onCategoryChange(category.id)}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
+            "flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
             activeCategory === category.id
               ? "bg-primary text-primary-foreground"
               : "bg-secondary text-secondary-foreground hover:bg-accent"

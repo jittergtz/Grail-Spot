@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +25,8 @@ interface AddItemDialogProps {
     link?: string;
     description?: string;
     isStaffPick: boolean;
-  }) => void;
+    isPublic?: boolean;
+  }) => Promise<void> | void;
 }
 
 export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
@@ -36,50 +39,78 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
     link: "",
     description: "",
     isStaffPick: false,
+    isPublic: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.image || !formData.price || !formData.tag) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    onAddItem({
-      title: formData.title,
-      image: formData.image,
-      price: formData.price,
-      tag: formData.tag,
-      link: formData.link || undefined,
-      description: formData.description || undefined,
-      isStaffPick: formData.isStaffPick,
-    });
+    try {
+      await onAddItem({
+        title: formData.title,
+        image: formData.image,
+        price: formData.price,
+        tag: formData.tag,
+        link: formData.link || undefined,
+        description: formData.description || undefined,
+        isStaffPick: formData.isStaffPick,
+        isPublic: formData.isPublic,
+      });
 
-    setFormData({
-      title: "",
-      image: "",
-      price: "",
-      tag: "",
-      link: "",
-      description: "",
-      isStaffPick: false,
-    });
-    
-    setOpen(false);
-    toast.success("Item added to your wishlist!");
+      setFormData({
+        title: "",
+        image: "",
+        price: "",
+        tag: "",
+        link: "",
+        description: "",
+        isStaffPick: false,
+        isPublic: false,
+      });
+
+      setOpen(false);
+      toast.success("Item added to your wishlist!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add item. Please try again.");
+    }
+  };
+
+  const navigate = useNavigate();
+
+  const handleOpenClick = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      if (!currentUser) {
+        // Require sign-in to add persistent items
+        toast.info("Sign in to add items to your wishlist");
+        navigate("/auth");
+        return;
+      }
+      setOpen(true);
+    } catch (err) {
+      console.error(err);
+      toast.error("Unable to open add dialog");
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size="lg"
-          className="fixed bottom-8 right-8 rounded-full shadow-lg h-14 w-14 p-0 hover:scale-110 transition-transform"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      </DialogTrigger>
+      <Button
+        size="lg"
+        onClick={handleOpenClick}
+        className="fixed bottom-8 right-8 rounded-full shadow-lg h-14 w-14 p-0 hover:scale-110 transition-transform"
+      >
+        <Plus className="w-6 h-6" />
+      </Button>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add New Item</DialogTitle>
@@ -175,6 +206,19 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
             />
             <Label htmlFor="staffPick" className="cursor-pointer">
               Mark as Staff Pick
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="isPublic"
+              checked={formData.isPublic}
+              onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
+              className="rounded border-input"
+            />
+            <Label htmlFor="isPublic" className="cursor-pointer">
+              Make Public (visible to everyone)
             </Label>
           </div>
 
