@@ -67,7 +67,7 @@ export const ProductCard = ({
              <p className="text-lg text-zinc-400  text-foreground ">$ {price}</p>
             
             {/* Voting UI */}
-            <div className="flex items-center gap-1 bg-zinc-100 rounded-full px-2 py-1" onClick={(e) => e.preventDefault()}>
+            <div className="flex items-center gap-1 bg-zinc-50 rounded-full px-2 py-1" onClick={(e) => e.preventDefault()}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -75,15 +75,15 @@ export const ProductCard = ({
                   onVote && onVote(1);
                 }}
                 className={`p-1 rounded-full hover:bg-zinc-200 transition-colors ${
-                  currentVote === 1 ? "text-orange-500" : "text-zinc-500"
+                  currentVote === 1 ? "text-indigo-500" : "text-zinc-500"
                 }`}
               >
                 <ArrowBigUp className={`w-5 h-5 ${currentVote === 1 ? "fill-current" : ""}`} />
               </button>
               
               <span className={`text-sm font-medium ${
-                currentVote === 1 ? "text-orange-500" : 
-                currentVote === -1 ? "text-indigo-500" : "text-zinc-600"
+                currentVote === 1 ? " text-indigo-500" : 
+                currentVote === -1 ? "text-orange-500" : "text-zinc-600"
               }`}>
                 {voteScore || 0}
               </span>
@@ -95,7 +95,7 @@ export const ProductCard = ({
                   onVote && onVote(-1);
                 }}
                 className={`p-1 rounded-full hover:bg-zinc-200 transition-colors ${
-                  currentVote === -1 ? "text-indigo-500" : "text-zinc-500"
+                  currentVote === -1 ? "text-orange-500" : "text-zinc-500"
                 }`}
               >
                 <ArrowBigDown className={`w-5 h-5 ${currentVote === -1 ? "fill-current" : ""}`} />
