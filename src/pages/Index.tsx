@@ -576,7 +576,7 @@ const Index = () => {
 
         {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            {/* ... rest of your empty state ... */}
+            {/* ... rest of your empty state f... */}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
