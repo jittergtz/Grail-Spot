@@ -355,12 +355,15 @@ const ItemDetail = () => {
                 )}
               </div>
 
-              <div className="pt-8 border-t">
+           
+            </div>
+            
+          </div>
+          
+        </div>
+           <div className="p-3 mt-5 bg-card rounded-2xl overflow-hidden shadow-lg">
                 {id && <Comments itemId={id} />}
               </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
