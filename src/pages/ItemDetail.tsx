@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { EditItemDialog } from "@/components/EditItemDialog";
+import { Comments } from "@/components/Comments";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -352,6 +353,10 @@ const ItemDetail = () => {
                     </a>
                   </div>
                 )}
+              </div>
+
+              <div className="pt-8 border-t">
+                {id && <Comments itemId={id} />}
               </div>
             </div>
           </div>
