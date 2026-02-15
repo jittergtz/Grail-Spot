@@ -48,7 +48,13 @@ if (!supabaseUrl || !supabaseKey) {
     from: () => makeEmptyQuery(),
   };
 } else {
-  _supabase = createClient(supabaseUrl, supabaseKey);
+  _supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
 }
 
 export const supabase = _supabase;

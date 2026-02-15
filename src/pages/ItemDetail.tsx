@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { EditItemDialog } from "@/components/EditItemDialog";
+import { Comments } from "@/components/Comments";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -35,7 +36,25 @@ const ItemDetail = () => {
   const navigate = useNavigate();
   const [item, setItem] = useState<WishlistItem | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
+  // Immediately load from localStorage for instant display
+  useEffect(() => {
+    const storedItems = localStorage.getItem("wishlistItems");
+    if (storedItems) {
+      try {
+        const items = JSON.parse(storedItems);
+        const foundItem = items.find((i: any) => i.id === id);
+        if (foundItem) {
+          setItem(foundItem);
+        }
+      } catch (e) {
+        // ignore corrupt data
+      }
+    }
+  }, [id]);
+
+  // Then fetch fresh data from Supabase (upgrades localStorage data)
   useEffect(() => {
     let mounted = true;
 
@@ -48,43 +67,64 @@ const ItemDetail = () => {
       if (!mounted) return;
       setCurrentUserId(currentUser?.id ?? null);
 
-      const { data, error } = await supabase
-        .from("wishlist_items")
-        .select("*")
-        .eq("id", id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from("wishlist_items")
+          .select("*")
+          .eq("id", id)
+          .single();
 
-      if (error) {
-        console.error(error);
-        // Fallback to localStorage if Supabase fails
-        const storedItems = localStorage.getItem("wishlistItems");
-        if (storedItems) {
-          const items: WishlistItem[] = JSON.parse(storedItems);
-          const foundItem = items.find((i) => i.id === id);
-          if (foundItem && mounted) {
-            setItem(foundItem);
-            return;
+        if (error) {
+          console.error("Supabase fetch error:", error);
+          // If we already have the item from localStorage, keep showing it
+          // Only navigate away if we have nothing to show
+          setItem((current) => {
+            if (!current && mounted) {
+              // No localStorage data either — try to find in localStorage one more time
+              const storedItems = localStorage.getItem("wishlistItems");
+              if (storedItems) {
+                const items = JSON.parse(storedItems);
+                const foundItem = items.find((i: any) => i.id === id);
+                if (foundItem) return foundItem;
+              }
+              toast.error("Item not found");
+              navigate("/");
+            }
+            return current;
+          });
+          return;
+        }
+
+        if (data && mounted) {
+          setItem({
+            id: data.id,
+            title: data.title,
+            image: data.image,
+            price: data.price,
+            tag: data.tag,
+            link: data.link,
+            description: data.description,
+            isStaffPick: data.is_staff_pick,
+            userId: data.user_id,
+          });
+
+          // Check if the current user already has this item in their wishlist
+          if (currentUser) {
+            const { data: existing } = await supabase
+              .from("wishlist_items")
+              .select("id")
+              .eq("user_id", currentUser.id)
+              .eq("title", data.title)
+              .maybeSingle();
+
+            if (mounted && existing) {
+              setIsInWishlist(true);
+            }
           }
         }
-        if (mounted) {
-          toast.error("Item not found");
-          navigate("/");
-        }
-        return;
-      }
-
-      if (data && mounted) {
-        setItem({
-          id: data.id,
-          title: data.title,
-          image: data.image,
-          price: data.price,
-          tag: data.tag,
-          link: data.link,
-          description: data.description,
-          isStaffPick: data.is_staff_pick,
-          userId: data.user_id,
-        });
+      } catch (err) {
+        console.error("Failed to fetch item:", err);
+        // Keep showing localStorage data if available
       }
     };
 
@@ -221,6 +261,7 @@ const ItemDetail = () => {
         throw error;
       }
 
+      setIsInWishlist(true);
       toast.success("Added to your personal wishlist");
     } catch (err) {
       console.error("Error adding to wishlist:", err);
@@ -276,14 +317,16 @@ const ItemDetail = () => {
                 
                 <div className="flex items-center gap-2">
                   {/* Add to Personal Wishlist Button */}
-                  {currentUserId && (!item.userId || item.userId !== currentUserId) && (
-                     <Button
-                       onClick={handleAddToWishlist}
-                       className="h-10 w-10 p-0 rounded-full bg-zinc-100 hover:bg-amber-200 text-zinc-800 transition-colors"
-                     >
-                       <Heart className="w-5 h-5 fill-current" />
-                     </Button>
-                  )}
+
+                    <Button
+                      onClick={handleAddToWishlist}
+                      className={`h-10 w-10 p-0 rounded-full ${
+                        isInWishlist ? "bg-amber-200" : "bg-zinc-100"
+                      } hover:bg-amber-200 text-zinc-800 transition-colors`}
+                    >
+                      <Heart className="w-5 h-5 fill-current" />
+                    </Button>
+             
 
                   {currentUserId && item.userId && currentUserId === item.userId && (
                     <div className="flex border bg-zinc-100 border-zinc-300 p-1 pl-5 rounded-full items-center gap-2">
@@ -353,9 +396,16 @@ const ItemDetail = () => {
                   </div>
                 )}
               </div>
+
+           
             </div>
+            
           </div>
+          
         </div>
+           <div className="p-3 mt-5 rounded-2xl  overflow-hidden ">
+                {id && <Comments itemId={id} />}
+              </div>
       </div>
     </div>
   );

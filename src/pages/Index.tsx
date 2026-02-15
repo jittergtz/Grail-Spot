@@ -31,21 +31,40 @@ const Index = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<any>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [viewMode, setViewMode] = useState<"public" | "personal">("public");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
+
+  // Listen for auth state changes so we always have fresh session state
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }: any) => {
+      setUser(session?.user ?? null);
+      setAuthReady(true);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      try {
+        listener?.subscription?.unsubscribe();
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, []);
 
   // Update fetchItems to include vote data
   useEffect(() => {
     let mounted = true;
 
     const fetchItems = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      if (!mounted) return;
-      setUser(currentUser);
+      if (!authReady) return;
+
+      const currentUser = user;
 
       let query = supabase
         .from("wishlist_items")
@@ -136,7 +155,7 @@ const Index = () => {
 
     fetchItems();
     // ... existing cleanup ...
-  }, [viewMode]);
+  }, [viewMode, user, authReady]);
 
   // Ref to track timeouts for debouncing votes
   const voteTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
@@ -288,12 +307,28 @@ const Index = () => {
   }, [user]);
 
 
-  // Save items to localStorage whenever they change
+  // Save items to localStorage whenever they change (only if we have actual data)
+  // Guard: never overwrite a good cache with empty data during transient session loss
   useEffect(() => {
-    if (items.length > 0 || localStorage.getItem("wishlistItems")) {
+    if (items.length > 0) {
       localStorage.setItem("wishlistItems", JSON.stringify(items));
     }
   }, [items]);
+
+  // On mount, load from localStorage for instant display while Supabase loads
+  useEffect(() => {
+    const cached = localStorage.getItem("wishlistItems");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setItems(parsed);
+        }
+      } catch (e) {
+        // ignore corrupt data
+      }
+    }
+  }, []);
 
   const categories = [
     { id: "all", name: "All", count: items.length },
@@ -576,7 +611,8 @@ const Index = () => {
 
         {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            {/* ... rest of your empty state ... */}
+            {/* ... rest of your empty state fPERFECTEBAY7
+... */}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
