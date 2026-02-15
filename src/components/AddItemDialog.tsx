@@ -24,7 +24,6 @@ interface AddItemDialogProps {
     tag: string;
     link?: string;
     description?: string;
-    isStaffPick: boolean;
     isPublic?: boolean;
   }) => Promise<void> | void;
 }
@@ -38,8 +37,7 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
     tag: "",
     link: "",
     description: "",
-    isStaffPick: false,
-    isPublic: true,
+    isPublic: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +56,6 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
         tag: formData.tag,
         link: formData.link || undefined,
         description: formData.description || undefined,
-        isStaffPick: formData.isStaffPick,
         isPublic: formData.isPublic,
       });
 
@@ -69,8 +66,7 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
         tag: "",
         link: "",
         description: "",
-        isStaffPick: false,
-        isPublic: true,
+        isPublic: false,
       });
 
       setOpen(false);
@@ -196,18 +192,7 @@ export const AddItemDialog = ({ onAddItem }: AddItemDialogProps) => {
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="staffPick"
-              checked={formData.isStaffPick}
-              onChange={(e) => setFormData({ ...formData, isStaffPick: e.target.checked })}
-              className="rounded border-input"
-            />
-            <Label htmlFor="staffPick" className="cursor-pointer">
-              Mark as Staff Pick
-            </Label>
-          </div>
+
 
           <div className="flex items-center space-x-2">
             <input

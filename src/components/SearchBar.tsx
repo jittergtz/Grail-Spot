@@ -46,13 +46,13 @@ export const SearchBar = ({ value, onChange, onClear }: SearchBarProps) => {
     <div className="relative" ref={containerRef}>
       <div
         className={`relative transition-all duration-300 ease-in-out ${
-          isExpanded ? "w-96" : "w-10"
+          isExpanded ? "w-[360px]" : "w-10"
         }`}
       >
         {!isExpanded ? (
           <button
             onClick={handleExpand}
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-white hover:bg-gray-100 transition-colors shadow-md"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-zinc-100 hover:bg-white  transition-colors shadow-md"
           >
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -66,7 +66,7 @@ export const SearchBar = ({ value, onChange, onClear }: SearchBarProps) => {
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onBlur={handleCollapse}
-              className="pl-10 pr-10 h-10 rounded-full outline-none text-base bg-white/80 backdrop-blur-lg shadow-md border-0 "
+              className="pl-10 pr-10 h-10 rounded-full outline-none text-base bg-white backdrop-blur-lg shadow-md border-0 "
             />
             {value && (
               <button
