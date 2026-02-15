@@ -41,16 +41,17 @@ const Auth = () => {
         <img  src="/AuthV2Background.jpg" alt="Auth image" className="w-full select-none  h-full object-cover" />
       </div>
 
-      <div className="flex-1 w-full md:w-1/2 flex items-center justify-center">
-        <div className="max-w-md w-full p-8">
-          <div className="mb-6">
-            <h1 className="text-3xl font-semibold">Welcome to <span style={{ fontStyle: "italic", fontWeight: 500, fontFamily: "'Source Serif 4', serif" }}>Grail</span> Spot</h1>
-            <p className="text-muted-foreground">Sign in and join a small community of people who love beautifully made, high quality products.</p>
+      <div className="flex-1 w-full md:w-1/2 bg-black md:bg-transparent flex items-center justify-center">
+        <img  src="/AuthV2Background.jpg" alt="Auth image" className="w-full md:hidden saturate-50 opacity-70 select-none  h-full object-cover" />
+        <div className="max-w-md  absolute md:static  sm:block w-full p-8">
+          <div className="mb-6 ">
+            <h1 className="text-3xl mt-5 md:mt-0 text-zinc-50 md:text-zinc-950 font-semibold">Welcome to <span style={{ fontStyle: "italic", fontWeight: 500, fontFamily: "'Source Serif 4', serif" }}>Grail</span> Spot</h1>
+            <p className="md:text-muted-foreground 2 text-neutral-300 ">Sign in and join a small community of people who love beautifully made, high quality products.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label className="text-zinc-400 md:text-neutral-700" htmlFor="email">Email</Label>
               <Input
               className="rounded-full"
                 id="email"
