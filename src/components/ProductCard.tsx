@@ -39,15 +39,18 @@ export const ProductCard = ({
             className="  max-h-64 rounded-3xl object-cover bg transition-transform duration-300 group-hover:scale-105"
           />
           {link && (
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-background z-10"
+            <span
+              role="link"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                window.open(link, "_blank", "noopener,noreferrer");
+              }}
+              className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-background z-10 cursor-pointer"
             >
               <ExternalLink className="w-4 h-4 text-foreground" />
-            </a>
+            </span>
           )}
         </div>
         

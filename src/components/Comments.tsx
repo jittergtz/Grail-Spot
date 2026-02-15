@@ -104,31 +104,31 @@ export const Comments = ({ itemId }: CommentsProps) => {
 
   return (
     <div className="space-y-8">
-      <h3 className="text-xl font-semibold">Comments ({comments.length})</h3>
+      <h3 className="text-lg font-meidum">Comments: {comments.length}</h3>
 
       {/* Comment Form */}
       {userId ? (
         <form onSubmit={handleSubmit} className="flex gap-4">
-          <Avatar className="w-10 h-10">
-            <AvatarFallback>Me</AvatarFallback>
+          <Avatar className="w-10  h-10">
+            <AvatarFallback className="bg-white border border-zinc-300 shadow-lg">Me</AvatarFallback>
           </Avatar>
           <div className="flex-1 gap-2 flex flex-col">
             <Textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."
-              className="resize-none min-h-[100px]"
+              className="resize-none bg-card min-h-[100px]"
             />
             <div className="flex justify-end">
               <Button 
                 type="submit" 
                 disabled={!newComment.trim() || submitting}
-                className="gap-2"
+                className="gap-2 rounded-full"
               >
                 {submitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3 h-3 animate-spin" />
                 ) : (
-                  <Send className="w-4 h-4" />
+                  <Send className="w-3 h-3 " />
                 )}
                 Post Comment
               </Button>
@@ -136,11 +136,11 @@ export const Comments = ({ itemId }: CommentsProps) => {
           </div>
         </form>
       ) : (
-        <div className="bg-muted/50 p-6 rounded-lg text-center">
+        <div className="bg-card shadow-lg p-6 rounded-lg text-center">
           <p className="text-muted-foreground mb-4">
             Please sign in to join the conversation.
           </p>
-          <Button variant="outline" asChild>
+          <Button className="px-6 rounded-full" variant="outline" asChild>
             <a href="/auth">Sign In</a>
           </Button>
         </div>
@@ -158,18 +158,18 @@ export const Comments = ({ itemId }: CommentsProps) => {
           </p>
         ) : (
           comments.map((comment) => (
-            <div key={comment.id} className="flex gap-4 group">
+            <div key={comment.id} className="flex  gap-4 group">
               <Avatar className="w-10 h-10 mt-1">
-                <AvatarImage src={comment.profiles?.avatar_url} />
-                <AvatarFallback>
+                <AvatarImage className=" border zinc-300" src={comment.profiles?.avatar_url} />
+                <AvatarFallback className=" bg-zinc-300">
                   {comment.profiles?.username?.[0]?.toUpperCase() ?? "?"}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 space-y-1">
+              <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-sm">
-                      {comment.profiles?.username ?? "Unknown User"}
+                      {comment.profiles?.username ?? "User"}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
@@ -187,7 +187,7 @@ export const Comments = ({ itemId }: CommentsProps) => {
                     </Button>
                   )}
                 </div>
-                <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                <p className="text-sm  text-foreground/90 whitespace-pre-wrap leading-relaxed">
                   {comment.content}
                 </p>
               </div>
